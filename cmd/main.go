@@ -1,31 +1,38 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 
+	"template-validating-webhook/internal/utils"
 	"template-validating-webhook/pkg/apis"
 
 	"github.com/gorilla/mux"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+)
+
+const (
+	cert = utils.CertDir + "/tls.crt"
+	key  = utils.CertDir + "/tls.key"
 )
 
 var log = logf.Log.WithName("template-validating-webhook")
 
 func main() {
-	logf.SetLogger(zap.Logger(true))
 	log.Info("initializing server....")
 
-	// cert := "/etc/webhook/certs/cert.pem"
-	// key := "/etc/webhook/certs/key.pem"
-	// listenOn := "0.0.0.0:8443"
+	if err := utils.CreateCert(context.Background()); err != nil {
+		fmt.Println(err, "failed to create cert")
+	}
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", apis.CheckInstanceUpdatable).Methods("POST")
 
 	http.Handle("/", r)
-	// TODO) Convert to HTTPS
-	if err := http.ListenAndServe(":8443", nil); err != nil {
-		log.Error(err, "failed to initialize a server")
+
+	if err := http.ListenAndServeTLS(":8443", cert, key, nil); err != nil {
+		fmt.Println(err, "failed to initialize a server")
 	}
+	//TODO Add kube client and check instance
 }
