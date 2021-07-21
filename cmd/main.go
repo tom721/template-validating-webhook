@@ -35,4 +35,5 @@ func main() {
 		fmt.Println(err, "failed to initialize a server")
 	}
 	//TODO Add kube client and check instance
+	//TODO whenever pod restart, update CABundle of ValidatingWebhookConfiguration CRD
 }

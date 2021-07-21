@@ -33,7 +33,7 @@ func CreateCert(ctx context.Context) error {
 	}
 
 	// Create certs
-	tlsKey, tlsCrt, _, err := certResources.CreateCerts(ctx, svc, ns, time.Now().AddDate(1, 0, 0))
+	tlsKey, tlsCrt, caCrt, err := certResources.CreateCerts(ctx, svc, ns, time.Now().AddDate(1, 0, 0))
 	if err != nil {
 		return err
 	}
@@ -47,6 +47,12 @@ func CreateCert(ctx context.Context) error {
 
 	crtPath := path.Join(CertDir, "tls.crt")
 	err = ioutil.WriteFile(crtPath, tlsCrt, 0644)
+	if err != nil {
+		return err
+	}
+
+	caPath := path.Join(CertDir, "ca.crt")
+	err = ioutil.WriteFile(caPath, caCrt, 0644)
 	if err != nil {
 		return err
 	}
