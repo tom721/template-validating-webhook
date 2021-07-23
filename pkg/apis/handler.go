@@ -9,13 +9,13 @@ import (
 )
 
 func CheckInstanceUpdatable(w http.ResponseWriter, r *http.Request) {
-	var req interface{}
+	var req map[string]interface{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		fmt.Println("request json decoding error")
 		return
 	}
 
-	result := validate(req)
+	result := Validate(req)
 
 	body := schemas.ResponseBody{
 		Kind:       "AdmissionReview",
@@ -30,36 +30,22 @@ func CheckInstanceUpdatable(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func validate(req interface{}) bool {
+func Validate(req map[string]interface{}) bool {
 
-	data := make(map[string]interface{})
-	byteReq, _ := json.Marshal(req)
-	if err := json.Unmarshal([]byte(byteReq), &data); err != nil {
-		fmt.Println("request unmarshalling is failed")
-		return false
-	}
-
-	request := data["request"].(map[string]interface{})
+	request := req["request"].(map[string]interface{})
 	object := request["object"].(map[string]interface{})
-	newInstanceName := object["metadata"].(map[string]interface{})["name"].(string)
 	newTemplateName := object["spec"].(map[string]interface{})["template"].(map[string]interface{})["metadata"].(map[string]interface{})["name"].(string)
 
 	oldObject := request["oldObject"].(map[string]interface{})
-	oldInstanceName := oldObject["metadata"].(map[string]interface{})["name"].(string)
 	oldTemplateName := oldObject["spec"].(map[string]interface{})["template"].(map[string]interface{})["metadata"].(map[string]interface{})["name"].(string)
 
-	if newInstanceName != oldInstanceName {
+	if oldObject == nil {
 		return true
-	}
-
-	if newInstanceName == oldInstanceName {
+	} else {
 		if newTemplateName == oldTemplateName {
-			return true
-		} else {
 			return false
+		} else {
+			return true
 		}
 	}
-
-	fmt.Println("validating is failed")
-	return false
 }
