@@ -41,11 +41,10 @@ func Validate(req map[string]interface{}) bool {
 
 	if oldObject == nil {
 		return true
-	} else {
-		if newTemplateName == oldTemplateName {
-			return false
-		} else {
-			return true
-		}
 	}
+	if newTemplateName == oldTemplateName {
+		return false
+	}
+
+	return true
 }
